@@ -14,18 +14,19 @@ from sklearn.feature_extraction.text import CountVectorizer
 # Training
 import xgboost as xgb
 from sklearn import metrics
-from tensorflow.keras.layers import Input,Dropout,Dense,Embedding,LSTM
-from tensorflow.keras.layers import Conv1D,GlobalMaxPool1D
-from tensorflow.keras.layers import Conv2D,MaxPool2D,Add,BatchNormalization
+from tensorflow.keras.layers import Input, Dropout, Dense, Embedding, LSTM
+from tensorflow.keras.layers import Conv1D, GlobalMaxPool1D
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Add, BatchNormalization
 from tensorflow.keras.models import Model
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-max_features=100000
+max_features = 100000
 max_document_length = 1000000
 
-def read_allcsvdata(base_path1,base_path2):
+
+def read_allcsvdata(base_path1, base_path2):
     """
 
     Args:
@@ -37,26 +38,25 @@ def read_allcsvdata(base_path1,base_path2):
     df_all = pd.DataFrame([])
 
     ExternalServer = os.listdir(os.path.join(base_path1, 'ExternalServer'))
-    # for filename in (sorted(ExternalServer)):
-    #     train_path = os.path.join(base_path1, 'ExternalServer', filename)
-    #     df = pd.read_csv(train_path,low_memory=False)
-    #     df_all = df_all.append(df)
-    #
-    # OpenStack = os.listdir(os.path.join(base_path1, 'OpenStack'))
-    # for filename in (sorted(OpenStack)):
-    #     train_path = os.path.join(base_path1, 'OpenStack', filename)
-    #     df = pd.read_csv(train_path,low_memory=False)
-    #     df_all = df_all.append(df)
+    for filename in (sorted(ExternalServer)):
+        train_path = os.path.join(base_path1, 'ExternalServer', filename)
+        df = pd.read_csv(train_path,low_memory=False)
+        df_all = df_all.append(df)
+
+    OpenStack = os.listdir(os.path.join(base_path1, 'OpenStack'))
+    for filename in (sorted(OpenStack)):
+        train_path = os.path.join(base_path1, 'OpenStack', filename)
+        df = pd.read_csv(train_path,low_memory=False)
+        df_all = df_all.append(df)
 
     traffic = os.listdir(base_path2)
     for filename in sorted(traffic):
         train_path = os.path.join(base_path2, filename)
-        df = pd.read_csv(train_path,low_memory=False)
+        df = pd.read_csv(train_path, low_memory=False)
         df_all = df_all.append(df)
 
-    df_all.to_csv('data_features_002.csv')
+    df_all.to_csv('data_features.csv')
 
-    return df_all
 
 def data_StandardScaler(data):
     """
@@ -72,7 +72,7 @@ def data_StandardScaler(data):
     return data
 
 
-def get_features_by_onehot(basic_features):
+def get_features_by_wordbag(basic_features):
     """
 
     Args:
@@ -91,9 +91,10 @@ def get_features_by_onehot(basic_features):
                                  max_df=1.0,
                                  min_df=1)
 
-    features=vectorizer.fit_transform(basic_features)
+    features = vectorizer.fit_transform(basic_features)
     features = features.toarray()
     return features
+
 
 def get_features_Mb2bytes(basic_features):
     """
@@ -106,13 +107,15 @@ def get_features_Mb2bytes(basic_features):
     """
     features = basic_features.values.tolist()
     for i in range(len(features)):
-        if features[i][-1] == "M":
-            features[i] = str(float(features[i][:-1].split()[0])*1024*1024)
+        if str(features[i]).split()[-1] == "M":
+            features[i] = str(int(float(features[i].split()[0]) * 1024 * 1024))
 
     features = np.array(features)
+
     return features
 
-def get_features(data):
+
+def get_features(path):
     """
 
     Args:
@@ -126,11 +129,10 @@ def get_features(data):
 
     """
 
-    # df = pd.read_csv(path)
+    df = pd.read_csv(path)
 
-    df = data
-    Flags_features = pd.get_dummies(df[["Flags"]])
-    df = df.join(Flags_features)
+    Flags_features = get_features_by_wordbag(df['Flags'].values.tolist())
+    df_Flags = pd.DataFrame(Flags_features)
 
     df['newBytes'] = get_features_Mb2bytes(df['Bytes'])
 
@@ -139,8 +141,8 @@ def get_features(data):
     df['norm_Packets'] = data_StandardScaler(df['Packets'])
     df['norm_newBytes'] = data_StandardScaler(df['newBytes'])
 
-    df = df.drop(['Date first seen', 'Duration', 'Proto', 'Flows', 'Tos', 'Src Pt', 'Dst Pt', 'Packets', 'Src IP Addr',
-                  'Dst IP Addr', 'Bytes', 'Flags','attackType',	'attackID',	'attackDescription'], axis=1)
+    df = df.drop(['Date first seen', 'Duration', 'Proto', 'Flows', 'Tos', 'Packets', 'Src IP Addr',
+                  'Dst IP Addr', 'Bytes', 'Flags', 'attackType', 'attackID', 'attackDescription','newBytes'], axis=1)
 
     normal_index = df[df['class'] == 'normal'].index
     attacker_index = df[df['class'] == 'attacker'].index
@@ -148,14 +150,17 @@ def get_features(data):
     suspicious_index = df[df['class'] == 'suspicious'].index
     unknown_index = df[df['class'] == 'unknown'].index
 
-    x_index = np.concatenate([normal_index,attacker_index,victim_index,suspicious_index,unknown_index])
-    df = df.drop(['class'],axis=1)
+    x_index = np.concatenate([normal_index, attacker_index, victim_index, suspicious_index, unknown_index])
 
-    x = df.iloc[x_index,:]
-    y = [0] * len(normal_index) + [1] * len(attacker_index) + [2] * len(victim_index) + [3] * len(suspicious_index) + [4] * len(unknown_index)
+    df = df.drop(['class'], axis=1)
+    df = df.add(df_Flags)
+    x = df.iloc[x_index, :]
+    y = [0] * len(normal_index) + [1] * len(attacker_index) + [2] * len(victim_index) + [3] * len(suspicious_index) + [
+        4] * len(unknown_index)
 
     X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.4)
     return X_train, X_test, Y_train, Y_test
+
 
 def do_xgboost(X_train, X_test, Y_train, Y_test):
     """
@@ -173,7 +178,8 @@ def do_xgboost(X_train, X_test, Y_train, Y_test):
     Y_pred = xgb_model.predict(X_test)
     do_metrics(Y_test, Y_pred)
 
-def do_metrics(Y_test,Y_pred):
+
+def do_metrics(Y_test, Y_pred):
     """
 
     Args:
@@ -192,12 +198,11 @@ def do_metrics(Y_test,Y_pred):
     print("metrics.recall_score:")
     print(metrics.recall_score(Y_test, Y_pred))
     print("metrics.f1_score:")
-    print(metrics.f1_score(Y_test,Y_pred))
-
+    print(metrics.f1_score(Y_test, Y_pred))
 
 
 def do_rnn_wordbag(trainX, testX, trainY, testY):
-    print ("RNN and wordbag")
+    print("RNN and wordbag")
 
     trainX = pad_sequences(trainX, maxlen=max_document_length, value=0.)
     testX = pad_sequences(testX, maxlen=max_document_length, value=0.)
@@ -207,23 +212,26 @@ def do_rnn_wordbag(trainX, testX, trainY, testY):
 
     # Network building
     inputs = Input((max_document_length,))
-    net = Embedding(10240000,128)(inputs)
+    net = Embedding(10240000, 128)(inputs)
     net = LSTM(128, dropout=0.8)(net)
     predictions = Dense(3, activation='softmax')(net)
 
     # Training
     adam = optimizers.Adam(lr=0.001)
-    model = Model(inputs=inputs,outputs=predictions)
-    model.compile(optimizer=adam,loss='categorical_crossentropy')
+    model = Model(inputs=inputs, outputs=predictions)
+    model.compile(optimizer=adam, loss='categorical_crossentropy')
     model.fit(trainX, trainY, validation_data=(testX, testY),
-              batch_size=1,epochs=5)
+              batch_size=1, epochs=5)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     base_path1 = '/home/liyulian/data/CIDDS/CIDDS-001/traffic'
     base_path2 = '/home/liyulian/data/CIDDS/CIDDS-002/traffic'
-    data = read_allcsvdata(base_path1, base_path2)
 
-    # path = 'data_features_002.csv'
-    X_train, X_test, Y_train, Y_test = get_features(data)
-    do_xgboost(X_train, X_test, Y_train, Y_test)
+    # 单独使用base_path2的数据集且提前生成好了，Flag使用的是词袋化，'Src Pt', 'Dst Pt'使用的是标准化
+    read_allcsvdata(base_path1, base_path2)
+
+    # path = 'data_features.csv'
+    # X_train, X_test, Y_train, Y_test = get_features(path)
+    # do_xgboost(X_train, X_test, Y_train, Y_test)
     # do_rnn_wordbag(np.array(X_train), np.array(X_test), Y_train, Y_test)

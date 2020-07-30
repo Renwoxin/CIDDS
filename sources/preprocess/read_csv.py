@@ -21,7 +21,7 @@ def read_ciddds_csvdata(base_path1,base_path2, save_path, E_Server=False, O_Stac
         ExternalServer = os.listdir(os.path.join(base_path1, 'ExternalServer'))
         for filename in (sorted(ExternalServer)):
             train_path = os.path.join(base_path1, 'ExternalServer', filename)
-            df = pd.read_csv(train_path,low_memory=False)
+            df = pd.read_csv(train_path, low_memory=False)
             df_all = df_all.append(df)
 
         df_all.to_csv(save_path + 'data_features_001_E.csv')
@@ -59,7 +59,7 @@ def read_ciddds_csvdata(base_path1,base_path2, save_path, E_Server=False, O_Stac
     traffic = os.listdir(base_path2)
     for filename in sorted(traffic):
         train_path = os.path.join(base_path2, filename)
-        df = pd.read_csv(train_path,low_memory=False)
+        df = pd.read_csv(train_path, low_memory=False)
         df_all = df_all.append(df)
 
     df_all.to_csv(save_path + 'data_features.csv')

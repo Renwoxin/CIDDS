@@ -4,12 +4,17 @@
     This is a collection of machine learning algorithm codes for sequences
 
 """
-
+from sources.utils.calculation_metrics import do_metrics
 import xgboost as xgb
 from sklearn.utils.class_weight import compute_sample_weight
 import pickle
+import logging
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-def do_xgboost(X_train, Y_train, model_path, name):
+def do_xgboost(X_train, Y_train):
     """
 
     Args:
@@ -22,11 +27,11 @@ def do_xgboost(X_train, Y_train, model_path, name):
 
     """
     xgb_model = xgb.XGBClassifier().fit(X_train, Y_train)
-    with open(model_path+name+'model.pickle', 'wb') as f:
-        pickle.dump(xgb_model, f)
+
+    return xgb_model
 
 
-def do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test):
+def do_xgboost_blance_scale(X_train, Y_train):
     """
 
     Args:
@@ -40,10 +45,9 @@ def do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test):
 
     """
     xgb_model = xgb.XGBClassifier(scale_pos_weight=99).fit(X_train, Y_train)
-    Y_pred = xgb_model.predict(X_test)
-    return Y_pred
+    return xgb_model
 
-def do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test):
+def do_xgboost_blance_sample(X, Y):
     """
 
     Args:
@@ -56,6 +60,9 @@ def do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test):
         Y_pred: list, the Predicted value of the model
 
     """
+    logging.info('训练结果输出')
+    X_train, X_vld, Y_train, Y_vld = train_test_split(X, Y, test_size=0.2, random_state=1)
     xgb_model = xgb.XGBClassifier().fit(X_train, Y_train,sample_weight=compute_sample_weight("balanced", Y_train))
-    Y_pred = xgb_model.predict(X_test)
-    return Y_pred
+    Y_pred = xgb_model.predict(X_vld)
+    do_metrics(Y_vld, Y_pred)
+    return xgb_model

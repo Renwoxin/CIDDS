@@ -1,7 +1,7 @@
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
 from sources.preprocess.features import *
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 import numpy as np
 import json
 import os

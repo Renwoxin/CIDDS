@@ -1,7 +1,7 @@
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
 from sources.preprocess.features import *
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 from sources.utils import confusion_matrixs
 from sklearn import metrics
 
@@ -25,7 +25,7 @@ if __name__=="__main__":
 
     X_train, Y_train = get_features_train_test(path_1)
 
-    mechine_learning.do_xgboost(X_train, Y_train, model_path, '001train_002test')
+    machine_learnings.do_xgboost(X_train, Y_train, model_path, '001train_002test')
 
     X_test, Y_test = get_features_train_test(path_2)
 

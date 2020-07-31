@@ -8,6 +8,8 @@ import logging
 from tensorflow.keras.utils import to_categorical
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.model_selection import train_test_split
+from sources.utils.get_history import LossHistory
+from tensorflow.keras.callbacks import EarlyStopping
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -35,18 +37,26 @@ def do_dnn_1d(x, y, Input_shape=None):
     predictions = Dense(5, activation='softmax')(dense2)
 
     # Regression using adam with learning rate decay and Top-3 accuracy
-    adam = optimizers.Adam(lr=1e-5,decay=0.96)
+    adam = optimizers.Adam(lr=1e-5, decay=0.96)
 
     # data
     X_train, X_valid, Y_train, Y_valid = train_test_split(x, y, test_size=0.2, random_state=1)
 
     # Training
     model = Model(inputs=input_layer, outputs=predictions)
-    model.compile(optimizer=adam, loss='categorical_crossentropy',metrics=['accuracy'])
-    model.fit(X_train, Y_train, epochs=100, validation_data=(X_valid, Y_valid))
+
+    model.summary()
+    history = LossHistory()
+
+    model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+    model.fit(X_train, Y_train, epochs=100,
+              validation_data=(X_valid, Y_valid),
+              batch_size=256,
+              callbacks=[history])
     """
     早停，loss曲线，acc曲线，模型参数打印,history
     """
+    history.loss_plot('epoch', '/home/liyulian/code/CIDDS/repositories/dnn/result')
     return model
 
 
@@ -80,11 +90,20 @@ def do_dnn_1d_sample(x, y, Input_shape=None):
 
     # Training
     model = Model(inputs=input_layer, outputs=predictions)
+
+    model.summary()
+    history = LossHistory()
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=2)
     model.compile(optimizer=adam, loss='categorical_crossentropy',metrics=['accuracy'])
-    model.fit(X_train, Y_train, epochs=100, validation_data=(X_valid, Y_valid), batch_size=256, sample_weight=compute_sample_weight("balanced", Y_train))
+    model.fit(X_train, Y_train, epochs=100,
+              validation_data=(X_valid, Y_valid),
+              batch_size=256,
+              sample_weight=compute_sample_weight("balanced", Y_train),
+              callbacks=[history,early_stopping])
     """
     早停，loss曲线，acc曲线，模型参数打印,history
     """
+    history.loss_plot('epoch', '/home/liyulian/code/CIDDS/repositories/dnn/result/')
     return model
 
 

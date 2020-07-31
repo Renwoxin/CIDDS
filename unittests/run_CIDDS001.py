@@ -1,7 +1,7 @@
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
 from sources.preprocess.features import *
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 
 import logging
 
@@ -19,7 +19,7 @@ if __name__=="__main__":
                  '无样本平衡, 设置了划分样本的random_state=1, 并且保存模型')
 
     X_train, X_test, Y_train, Y_test = get_features_FPPB(path)
-    Y_pred, model = mechine_learning.do_xgboost(X_train, X_test, Y_train, Y_test)
+    Y_pred, model = machine_learnings.do_xgboost(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
     import pickle  # pickle模块
 
@@ -32,7 +32,7 @@ if __name__=="__main__":
     #              '无样本平衡')
     #
     # X_train, X_test, Y_train, Y_test = get_features(path)
-    # Y_pred = mechine_learning.do_xgboost(X_train, X_test, Y_train, Y_test)
+    # Y_pred = machine_learnings.do_xgboost(X_train, X_test, Y_train, Y_test)
     # do_metrics(Y_test, Y_pred)
 
     """
@@ -41,7 +41,7 @@ if __name__=="__main__":
                  '使用xgboost中的scale_pos_weight参数进行样本平衡，scale_pos_weight=99')
 
     X_train, X_test, Y_train, Y_test = get_features_FPPB(path)
-    Y_pred = mechine_learning.do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test)
+    Y_pred = machine_learnings.do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
 
     ### sample_weight
@@ -49,7 +49,7 @@ if __name__=="__main__":
                  '使用xgboost中的sample_weight参数进行样本平衡')
 
     X_train, X_test, Y_train, Y_test = get_features_FPPB(path)
-    Y_pred = mechine_learning.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
+    Y_pred = machine_learnings.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
     """
     """
@@ -58,7 +58,7 @@ if __name__=="__main__":
                  '使用xgboost中的sample_weight参数进行样本平衡')
 
     X_train, X_test, Y_train, Y_test = get_features(path)
-    Y_pred = mechine_learning.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
+    Y_pred = machine_learnings.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
     
     ### 加上了Src、Dst特征
@@ -66,6 +66,6 @@ if __name__=="__main__":
                  '使用xgboost中的scale_pos_weight参数进行样本平衡，scale_pos_weight=99')
 
     X_train, X_test, Y_train, Y_test = get_features(path)
-    Y_pred = mechine_learning.do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test)
+    Y_pred = machine_learnings.do_xgboost_blance_scale(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
     """

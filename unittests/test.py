@@ -1,7 +1,7 @@
 from sources.preprocess.features import *
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 
 import logging
 
@@ -17,5 +17,5 @@ if __name__=='__main__':
                  '使用xgboost中的sample_weight参数进行样本平衡.')
 
     X_train, X_test, Y_train, Y_test = get_features_hash(path)
-    Y_pred = mechine_learning.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
+    Y_pred = machine_learnings.do_xgboost_blance_sample(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)

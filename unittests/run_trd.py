@@ -1,7 +1,7 @@
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
 from sources.preprocess.features import *
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 
 import logging
 
@@ -21,6 +21,6 @@ if __name__ == "__main__":
 
     X_train, Y_train = get_feature(path_train)
     X_test, Y_test = get_feature(path_test)
-    model = mechine_learning.do_xgboost_blance_sample(X_train, Y_train)
+    model = machine_learnings.do_xgboost_blance_sample(X_train, Y_train)
     Y_pred = model.predict(X_test)
     do_metrics(Y_test, Y_pred)

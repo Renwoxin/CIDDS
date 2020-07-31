@@ -1,7 +1,7 @@
 from sources.utils.logfile import save_log_file
 from sources.utils.calculation_metrics import do_metrics
 from sources.preprocess.features import *
-from sources.models import mechine_learning
+from sources.models import machine_learnings
 from sklearn.model_selection import ShuffleSplit
 from sources.utils import plot_result
 import logging
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     title = r"Learning Curves (Naive Bayes)"
 
     X_train, X_test, Y_train, Y_test = get_features_FPPB(path)
-    Y_pred, model= mechine_learning.do_xgboost(X_train, X_test, Y_train, Y_test)
+    Y_pred, model= machine_learnings.do_xgboost(X_train, X_test, Y_train, Y_test)
     do_metrics(Y_test, Y_pred)
 
     x = np.concatenate([X_train, X_test])

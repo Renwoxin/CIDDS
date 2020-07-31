@@ -45,6 +45,6 @@ class mydnn_train:
 
     def sample_dnn(self):
         logging.info('Test case sample_dnn')
-        Dnn(self.save_path, self.log_path, self.X_train, self.Y_train, self.name, self.shape)
+        Dnn_sample(self.save_path, self.log_path, self.X_train, self.Y_train, self.name, self.shape)
         return True
 

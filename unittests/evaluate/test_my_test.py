@@ -42,6 +42,11 @@ class Test_Myclass_test(unittest.TestCase):
         result = cal.trd_tests()
         self.assertEqual(True, result)
 
-
+    def test_dnn(self):
+        logging.info("result")
+        name = 'none_dnn'
+        cal = myclass_test(X_test, Y_test, save_path, log_path, name)
+        result = cal.dnn_tests()
+        self.assertEqual(True, result)
 
 

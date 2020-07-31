@@ -9,11 +9,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-path = '/home/liyulian/code/CIDDS/sources/utils/data_features_002.csv'
-save_path = '/home/liyulian/code/CIDDS/repositories/xgb_model/'
-log_path = '/home/liyulian/code/CIDDS/repositories/'
-X, Y = get_features(path)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=1)
+
 # del(X)
 # del(Y)
 # path_001 = '/home/liyulian/data/CIDDS/CIDDS-001/traffic'
@@ -80,8 +76,7 @@ class Test_Mydnn_train(unittest.TestCase):
     def test_none_dnn(self):
         logging.info("result_none")
         name = 'none_dnn'
-
-        cal = mydnn_train(save_path, log_path, X_train, Y_train, name, shape=30)
+        cal = mydnn_train()
         result = cal.none_dnn()
         self.assertEqual(True,result)
 
@@ -89,7 +84,7 @@ class Test_Mydnn_train(unittest.TestCase):
         logging.info("result_none")
         name = 'sample_dnn'
 
-        cal = mydnn_train(save_path, log_path, X_train, Y_train, name, shape=30)
+        cal = mydnn_train()
         result = cal.sample_dnn()
         self.assertEqual(True, result)
 

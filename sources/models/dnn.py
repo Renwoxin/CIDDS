@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
-from tensorflow.keras.layers import Input,Dense,Dropout,BatchNormalization
+from tensorflow.keras.layers import Input,Dense,Dropout,BatchNormalization, Activation
 from tensorflow.keras.models import Model
 from tensorflow.keras import optimizers
-from tensorflow.keras.models import load_model
 import logging
 from tensorflow.keras.utils import to_categorical
 from sklearn.utils.class_weight import compute_sample_weight
@@ -14,7 +13,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def do_dnn_1d(x, y, Input_shape=None):
+def do_dnn_1d(x, y, result_path, Input_shape=None):
     """
 
     Args:
@@ -56,11 +55,11 @@ def do_dnn_1d(x, y, Input_shape=None):
     """
     早停，loss曲线，acc曲线，模型参数打印,history
     """
-    history.loss_plot('epoch', '/home/liyulian/code/CIDDS/repositories/dnn/result')
+    history.loss_plot('epoch', result_path)
     return model
 
 
-def do_dnn_1d_sample(x, y, Input_shape=None):
+def do_dnn_1d_sample(x, y, result_path, Input_shape=None):
     """
 
     Args:
@@ -72,18 +71,20 @@ def do_dnn_1d_sample(x, y, Input_shape=None):
     Returns:
 
     """
-    print ("DNN and 1d")
+    print("DNN and 1d")
     y = to_categorical(y, num_classes=5)
     # Building deep neural network
     input_layer = Input(shape=(Input_shape,))
-    bn1 = BatchNormalization()(input_layer)
-    dense1 = Dense(32, activation='relu')(bn1)
-    bn2 = BatchNormalization()(dense1)
-    dense2 = Dense(64, activation='relu')(bn2)
+    dense1 = Dense(32, activation='relu')(input_layer)
+    # drop1 = Dropout(0.1)(dense1)
+    # bn = BatchNormalization()(dense1)
+    dense2 = Dense(60, activation='relu')(dense1)
+    # dense3 = Dense(32, activation='relu')(dense2)
+    # drop2 = Dropout(0.1)(dense3)
     predictions = Dense(5, activation='softmax')(dense2)
 
     # Regression using adam with learning rate decay and Top-3 accuracy
-    adam = optimizers.Adam(lr=1e-5,decay=0.96)
+    adam = optimizers.Adam(lr=1e-4,decay=0.96)
 
     # data
     X_train, X_valid, Y_train, Y_valid = train_test_split(x, y, test_size=0.2, random_state=1)
@@ -93,17 +94,16 @@ def do_dnn_1d_sample(x, y, Input_shape=None):
 
     model.summary()
     history = LossHistory()
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=2)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=20, verbose=2)
     model.compile(optimizer=adam, loss='categorical_crossentropy',metrics=['accuracy'])
     model.fit(X_train, Y_train, epochs=100,
               validation_data=(X_valid, Y_valid),
-              batch_size=256,
-              sample_weight=compute_sample_weight("balanced", Y_train),
+              batch_size=128,
               callbacks=[history,early_stopping])
     """
-    早停，loss曲线，acc曲线，模型参数打印,history
+    早停，loss曲线，acc曲线，模型参数打印, history
     """
-    history.loss_plot('epoch', '/home/liyulian/code/CIDDS/repositories/dnn/result/')
+    history.loss_plot('epoch', result_path)
     return model
 
 
